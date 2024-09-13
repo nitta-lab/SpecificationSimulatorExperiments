@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>SimpleTwitter自動生成Javaコード</title>
+    <!--    <link rel="stylesheet" href="sample.css">-->
+    <!-- XRegExp is bundled with the final shCore.js during build -->
+    <script type="text/javascript" src="../syntaxhighlighter-3.0.83/scripts/XRegExp.js"></script>
+    <script type="text/javascript" src="../syntaxhighlighter-3.0.83/scripts/shCore.js"></script>
+    <script type="text/javascript" src="../syntaxhighlighter-3.0.83/scripts/shBrushJava.js"></script>
+    <link rel="stylesheet" href="../syntaxhighlighter-3.0.83/styles/shCoreEclipse.css" type="text/css" />
+    <link rel="stylesheet" href="../syntaxhighlighter-3.0.83/styles/shThemeEclipse.css" type="text/css" />
+    <script type="text/javascript">
+        SyntaxHighlighter.all();
+    </script>
+</head>
+
+<body>
+<h2 class="title">【SimpleTwitter(Jersey)】</h2>
+
+<p>
+	SimpleTwitter の DTRAM モデルから自動生成した Java (Jersey) プロトタイプのコード．
+</p>
+
+<div style="padding: 10px; margin-bottom: 10px; border: 1px solid #333333; border-radius: 10px;">
+<pre class="brush:java; gutter:false" id="E">
+	import java.util.*;
+	import javax.ws.rs.*;
+	import javax.ws.rs.client.*;
+	import javax.ws.rs.core.*;
+	import org.springframework.stereotype.Component;
+	import com.fasterxml.jackson.databind.ObjectMapper;
+	import com.fasterxml.jackson.core.JsonProcessingException;
+
+	@Path("/accounts")
+	@Component
+	public class Accounts {
+		private Map&ltString, Account&gt value = new HashMap<>();
+		@Produces(MediaType.APPLICATION_JSON)
+		@GET
+		public Map&ltString, Account&gt getValue() {
+			return new HashMap<>(value);
+		}
+		public Account getAccount(String accountId) {
+			return this.value.get(accountId);
+		}
+		@Path("/{accountId}")
+		@Produces(MediaType.APPLICATION_JSON)
+		@GET
+		public Map&ltString, Object&gt getAccountValue(@PathParam("accountId") String accountId) {
+			return getAccount(accountId).getValue();
+		}
+		@Path("/{accountId}/tweets")
+		@Produces(MediaType.APPLICATION_JSON)
+		@GET
+		public List getTweetsValue(@PathParam("accountId") String accountId) {
+			return getAccount(accountId).getTweets();
+		}
+		@POST
+		public void signUp(@FormParam("name") String name, @FormParam("accountId") String accountId) {
+			this.value.put(accountId,new Account(new ArrayList<>()));
+		}
+		@Path("/{accountId}/tweets")
+		@POST
+		public void tweet(@PathParam("accountId") String accountId, @FormParam("contents") String contents) {
+			getAccount(accountId).tweet(accountId, contents);
+		}
+	}
+
+	import java.util.*;
+
+	public class Account {
+		private List tweets;
+		public Account(List tweets) {
+			this.tweets = tweets;
+		}
+		public Map&ltString, Object&gt getValue() {
+			Map temp_nil = new HashMap<>();
+			temp_nil.put("tweets",this.getTweets());
+			return temp_nil;
+		}
+		public List getTweets() {
+			return this.tweets;
+		}
+		public void tweet(String accountId, String contents) {
+			this.tweets.add(contents);
+		}
+	}
+</pre>
+</div>
+</body>
+
+<style>
+    h1.title{
+        text-align: center;
+    }
+</style>
+</html>
