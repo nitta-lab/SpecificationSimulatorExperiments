@@ -133,7 +133,7 @@
     DTRAM では実行を可視化することができます．DTRAM のツールを用いてインタラクティブに仮想実行を進めていきます．まず，システムの初期状態を可視化したものが以下の図です，
 </p>
 <div class="img-center">
-    <img src="../img/DTRAM/DTRAMSimpleAddressBook0.png" class ="before-image-size"><br>
+    <img src="img/DTRAM/DTRAMSimpleAddressBook0.png" class ="before-image-size"><br>
 </div>
 <p>
     可視化では1つのリソースが，1つの楕円で表されます．子リソースは親リソースの内側の領域に表示されます．リソースの上部にはリソース名が記され，リソースの中心にはリソースの現在の状態が記されています．<br>
@@ -143,19 +143,19 @@
     <code>book.owner</code> リソースをダブルクリックします．
 </p>
 <div class="img-center">
-    <img src="../img/DTRAM/DTRAMSimpleAddressBook1.png" class ="before-image-size"><br>
+    <img src="img/DTRAM/DTRAMSimpleAddressBook1.png" class ="before-image-size"><br>
 </div>
 <p>
     リソースに送信するメッセージの種類を選択する画面が表示されるので，init を選択します．
 </p>
 <div class="img-center">
-    <img src="../img/DTRAM/DTRAMSimpleAddressBook2.png" class ="before-image-size"><br>
+    <img src="img/DTRAM/DTRAMSimpleAddressBook2.png" class ="before-image-size"><br>
 </div>
 <p>
     次にリソースに送信するメッセージの内容を入力します．ここでは，<code>init("Suzuki")</code> を入力します．
 </p>
 <div class="img-center">
-    <img src="../img/DTRAM/DTRAMSimpleAddressBook3.png" class ="before-image-size"><br>
+    <img src="img/DTRAM/DTRAMSimpleAddressBook3.png" class ="before-image-size"><br>
 </div>
 <p>
     次の状態に遷移します．<code>book.owner</code> リソースの状態が，<code>"Suzuki"</code> に変わったことが分かります．
@@ -164,7 +164,7 @@
     同様にして，<code>book.addr</code> リソースをダブルクリックして，<code>Add</code> チャンネルを通じて，<code>add("Satou", "Tokyo")</code> というメッセージを送ります．<br>
 </p>
 <div class="img-center">
-    <img src="../img/DTRAM/DTRAMSimpleAddressBook4.png" class ="before-image-size"><br>
+    <img src="img/DTRAM/DTRAMSimpleAddressBook4.png" class ="before-image-size"><br>
 </div>
 <p>
     <code>book.addr</code> リソースの子リソースとして，<code>book.addr.Satou</code> リソースが追加されたことが分かります．<br>
@@ -174,7 +174,7 @@
     さらに，<code>book.addr</code> リソースをダブルクリックして，<code>add("Tanaka", "Osaka")</code> というメッセージを送ります．<br>
 </p>
 <div class="img-center">
-    <img src="../img/DTRAM/DTRAMSimpleAddressBook5.png" class ="before-image-size"><br>
+    <img src="img/DTRAM/DTRAMSimpleAddressBook5.png" class ="before-image-size"><br>
 </div>
 <p>
     <code>book.addr</code> リソースの子リソースとして，さらに <code>book.addr.Tanaka</code> リソースが追加され，その状態は <code>"Osaka"</code> になっています．
@@ -183,13 +183,13 @@
     次に，<code>book.addr</code> リソースをダブルクリックして，<code> del("Satou")</code> というメッセージを送ります．<br>
 </p>
 <div class="img-center">
-    <img src="../img/DTRAM/DTRAMSimpleAddressBook6.png" class ="before-image-size"><br>
+    <img src="img/DTRAM/DTRAMSimpleAddressBook6.png" class ="before-image-size"><br>
 </div>
 <p>
     del を選択して，<code> del("Satou")</code> を入力します．
 </p>
 <div class="img-center">
-    <img src="../img/DTRAM/DTRAMSimpleAddressBook7.png" class ="before-image-size"><br>
+    <img src="img/DTRAM/DTRAMSimpleAddressBook7.png" class ="before-image-size"><br>
 </div>
 <p>
     <code>book.addr.Satou</code> リソースが削除されました．
