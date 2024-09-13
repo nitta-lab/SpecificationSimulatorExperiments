@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="ja" xmlns="http://www.w3.org/1999/html">
+<head>
+    <meta charset="UTF-8">
+    <style>
+        c1{
+            color: blue;
+        }
+        c2{
+            color: red;
+        }
+    </style>
+    <title>【DTRAMの説明】</title>
+</head>
+<body>
+<h1>【DTRAM の概要説明】</h1>
+<p>
+    次に本実験で用いる DTRAM の概要について説明します．<br>
+    現時点では本ページの内容を完全に理解する必要はありません．課題に取り組む際に必要に応じて本ページを参照しながら進めるようにください．<br>
+</p>
+<hr/>
+<h2>形式的仕様記述言語とは？</h2>
+<p>
+    DTRAM は仕様とアーキテクチャの両方を同時に記述することが可能な言語で，<strong>形式的仕様記述言語</strong>であると同時に<strong>形式的アーキテクチャ記述言語</strong>でもあります．<br>
+    形式的仕様記述言語とは，仕様を自然言語ではなく，論理式や等式のような数学的に厳密に意味が定義された形式で記述する方法で，<br>
+    <ul>
+        <li>仕様を曖昧性なく厳密に記述することができる，</li>
+        <li>プログラミング言語よりも高い抽象度でシステムの振る舞いを記述することができる，</li>
+        <li>記述した仕様を仮想的に実行したり，コンピュータを用いて解析を行うことができる</li>
+    </ul>
+    といった特長を持っています．<br>
+    コンピュータによる仕様の解析としては，仕様レベルで不具合が存在しないか（機能的要件が満たされているか）を網羅的に調べたり，セキュリティホールが存在しないことを確認することなどが挙げられます．<br>
+    形式的仕様記述言語による記述は，通常のプログラミング言語におけるソースコードの記述とはかなり異なっております．そのため，最初に形式的な仕様記述を見ると少々戸惑うかもしれません．<br>
+    一般的に形式的仕様記述言語の表現能力はプログラミング言語よりも低く，表現能力が低くなればなるほど複雑な振る舞いが記述できなくなる一方で，強力な解析ができるといった関係が成り立っています．<br>
+</p>
+<hr/>
+<h2>アーキテクチャ記述言語とは？</h2>
+<p>
+    形式的アーキテクチャ記述言語とは，システム全体の構造を箱や線などの図ではなく，厳密に意味が定義された言語の形式で記述する方法です．形式的アーキテクチャ記述言語では一般に，<br>
+    <ul>
+    <li>システムの構成要素であるコンポーネント，</li>
+    <li>コンポーネント間の関係，</li>
+    <li>コンポーネント間のデータや制御の流れ</li>
+    </ul>
+    などが記述されます．<br>
+    アーキテクチャ記述言語で記述されたアーキテクチャモデルは，システム全体のパフォーマンス，メモリ消費量や通信量，信頼性などの非機能的要件の予測や解析に用いられます．<br>
+    また開発チーム内で，システムの全体構造についての理解を共有するためのドキュメントとしても利用されます．
+</p>
+<hr/>
+<h2>DTRAM とは？</h2>
+<p>
+    DTRAM は仕様とアーキテクチャの両方を形式的に記述することが可能な言語です．形式的仕様記述言語として見ると表現能力がかなり高いため，網羅的な解析はできません．<br>
+    DTRAM では仕様そのものの解析より，
+    <ol>
+    <li>仕様の仮想実行による仕様レベルでのテスト，</li>
+    <li>記述したアーキテクチャで，記述した仕様が実現できるか否かのチェック，</li>
+    <li>通常のプログラミング言語で記述された実行可能なプロトタイプの自動生成</li>
+    </ol>
+    などを行うことを重視しています．<br>
+    また，形式的アーキテクチャ記述言語としては記述の抽象度が高いため，同一のアーキテクチャ記述からさまざまな設計を持ったプロトタイプの実装を導出することができます．
+    本実験では，DTRAM による仕様記述と仕様の仮想実行に着目していきます．そのため，DTRAM によるアーキテクチャのチェックやプロトタイプの自動生成は行いません．また，DTRAM のツールをPCにダウンロードして操作していただく必要もありません．<br>
+</p>
+<h3>DTRAM による仕様記述:</h3>
+<p>
+    DTRAM では，<strong>リソース</strong>と<strong>チャンネル</strong>を使って仕様とアーキテクチャを記述していきます．<br>
+    DTRAM におけるリソースとは，システムの外部から見えるデータのことです．Web サービスにおいて URL でアクセスされるリソースとほぼ同じものと考えて差し支えありません．DTRAM においてもリソースは階層構造を持つことができます．<br>
+    チャンネルはリソースとリソースの間の通信路です．システム外部からの入力は<strong>イベントチャンネル</strong>と呼ばれる特殊なチャンネルによって受け付けられます．<br>
+    リソースはチャンネルからメッセージを受け取ると状態遷移を行います．そのため，リソースは状態を持ちます．それでは，具体的に DTRAM の記述を見ていきましょう．
+</p>
+<hr/>
+<h2>DTRAM による仕様記述の例</h2>
+<h3>例題仕様:</h3>
+<p>
+    簡単なアドレス帳の仕様を DTRAM で記述することを考えます．
+    アドレス帳の仕様は次の通りです．
+    <ul>
+    <li>システムはアドレス帳を1つ持つ．</li>
+    <li>アドレス帳には所有者の名前が記載されている．</li>
+    <li>アドレス帳には連絡先の名前とアドレスの対応を任意個登録することができる．</li>
+    <li>アドレス帳において連絡先の名前が重複してはならない．</li>
+    <li>アドレス帳は連絡先の名前とアドレスの対応が1つも登録されていない状態を初期状態とする．</li>
+    <li>add 操作によって，指定した名前と指定したアドレスの対応をアドレス帳に登録することができる．</li>
+    <li>del 操作によって，指定した名前と対応するアドレスをアドレス帳から削除することができる．</li>
+    </ul>
+</p>
+<h3>DTRAM による記述例:</h3>
+<p>
+    DTRAM では，チャンネル単位で仕様を記述していきます．たとえばリソースに対する操作毎に，イベントチャンネルを定義していきます．ここでは，初期化操作用のイベントチャンネルを <code>Init</code>，add 操作用のイベントチャンネルを <code>Add</code>，del 操作用のイベントチャンネルを <code>Del</code> とします．<br>
+    <c1>channel</c1> でこれらのチャンネルを宣言します．チャンネルの宣言の中の <c1>out</c1> は，チャンネルを流れるメッセージを受け取るリソースを示しています．チャンネルにメッセージを送信するリソースも記述することができますが，本実験では使用しません．<br>
+    DTRAM には，メインメソッドやメインスレッドに相当するものはなく，いずれかのイベントチャンネルが外部からのメッセージを受信するたびに状態遷移を行い，状態遷移後は次のメッセージが外部から入力されるまで何もせず待機します．リソースについては次に説明します．
+</p>
+<p>
+    DTRAM では，Web サービスと同様に階層化されたリソースを扱うことができます．リソースは状態を持ち，その状態を変更することができます．アドレス帳の仕様は次のような階層化されたリソースで表すこととします．
+    <ul>
+    <li><code>book</code>：アドレス帳全体</li>
+    <li><code>book.owner</code>：アドレス帳の所有者</li>
+    <li><code>book.addr</code>：アドレス帳に記載された連絡先の名前と住所の対応表</li>
+    <li><code>book.addr.{name}</code>：連絡先の名前 <code>name</code> に対応した住所</li>
+    </ul>
+    下の仕様記述を見るとわかると思いますが，チャンネル <code>Init</code> を流れるメッセージを受け取るリソースは <code>book.owner</code> です．同様に，チャンネル <code>Add</code> 内のメッセージを受け取るリソースは <code>book.addr</code>，チャンネル <code>Del</code> 内のメッセージを受け取るリソースも <code>book.addr</code> になります．<br>
+</p>
+<p>
+    メッセージを受け取ったリソースは状態遷移を行います．各リソースの状態遷移は<strong>状態遷移関数</strong>によって定義されます．
+    たとえば，<code>Add</code> チャンネルでメッセージを受け取った <code>book.addr</code> リソースの状態遷移は，状態遷移関数
+    <pre>book.addr(pre_addr: <c1>Map</c1>, add(name: <c1>Str</c1>, addr: <c1>Str</c1>)) = insert(pre_addr, name, addr)</pre>
+    によって定義されています．<br>
+    少しわかりにくいですが，この式では左端の <code>book.addr</code> が関数名に相当します．状態遷移関数の関数名にはリソース名をそのまま用います．<br>
+    また関数 <code>book.addr</code> は，2つの引数を受け取っています．DTRAMでは，状態遷移関数の第1引数は遷移前の状態，第2引数は受け取るメッセージ，式の右辺は遷移後の状態を表しています．<br>
+    すなわち，<code>r(x, y) = z</code> と定義されていた場合，リソース <code>r</code> はメッセージ <code>y</code> を受け取ると，状態を <code>x</code> から <code>z</code> に変化させることを意味しています．<br>
+    この例では，メッセージ <code>add(name, addr)</code> を受け取った <code>book.addr</code> リソースが，状態を <code>pre_addr</code> から <code>insert(pre_addr, name, addr)</code> に変化させることが示されています．<br>
+    この <code>insert()</code> 関数は，第1引数に渡された写像(対応表)に対し，第2引数と第3引数の対応を追加した結果得られる写像を返す関数です．
+    したがって，上の式の右辺は，遷移前の状態 <code>prev_addr</code> に対して，メッセージ <code>add()</code> の引数で渡された <code>name</code> と <code>addr</code> の対応を追加した写像が遷移後の状態になることを示しています．<br>
+    なお，変数名の右側の <code>:</code> の直後に変数の型を記述することができます．型推論によって型がわかる場合には，型を省略することもできます．<br>
+    状態の型が，<code><c1>List</c1></code>，<code><c1>Map</c1></code>，<code><c1>Json</c1></code> であるようなリソースは子リソースを持つことができます．ここで，<code><c1>List</c1></code> はリスト型，<code><c1>Map</c1></code> は写像型（キーと値の対応），<code><c1>Json</c1></code> はJSONオブジェクト型を表します．
+</p>
+<div style="padding: 10px; margin-bottom: 10px; border: 1px solid #333333; border-radius: 10px;">
+	<pre>
+<c1>channel</c1> Init {
+	<c1>out</c1> book.owner(pre_name: <c1>Str</c1>, init(name: <c1>Str</c1>)) = name
+}
+
+<c1>channel</c1> Add {
+	<c1>out</c1> book.addr(pre_addr: <c1>Map</c1>, add(name: <c1>Str</c1>, addr: <c1>Str</c1>)) = insert(pre_addr, name, addr)
+}
+
+<c1>channel</c1> Del {
+	<c1>out</c1> book.addr(pre_addr, del(name: <c1>Str</c1>)) = delete(pre_addr, name)
+}
+    </pre>
+</div>
+<h3>実行の可視化:</h3>
+<p>
+    DTRAM では実行を可視化することができます．DTRAM のツールを用いてインタラクティブに仮想実行を進めていきます．まず，システムの初期状態を可視化したものが以下の図です，
+</p>
+<div class="img-center">
+    <img src="../img/DTRAM/DTRAMSimpleAddressBook0.png" class ="before-image-size"><br>
+</div>
+<p>
+    可視化では1つのリソースが，1つの楕円で表されます．子リソースは親リソースの内側の領域に表示されます．リソースの上部にはリソース名が記され，リソースの中心にはリソースの現在の状態が記されています．<br>
+</p>
+<p>
+    DTRAM の仮想実行では，メッセージを送りたいリソースをダブルクリックします．まず，<code>book.owner</code> リソースに，<code>Init</code> チャンネルを通じて，<code>init("Suzuki")</code> というメッセージを送ることを考えます．<br>
+    <code>book.owner</code> リソースをダブルクリックします．
+</p>
+<div class="img-center">
+    <img src="../img/DTRAM/DTRAMSimpleAddressBook1.png" class ="before-image-size"><br>
+</div>
+<p>
+    リソースに送信するメッセージの種類を選択する画面が表示されるので，init を選択します．
+</p>
+<div class="img-center">
+    <img src="../img/DTRAM/DTRAMSimpleAddressBook2.png" class ="before-image-size"><br>
+</div>
+<p>
+    次にリソースに送信するメッセージの内容を入力します．ここでは，<code>init("Suzuki")</code> を入力します．
+</p>
+<div class="img-center">
+    <img src="../img/DTRAM/DTRAMSimpleAddressBook3.png" class ="before-image-size"><br>
+</div>
+<p>
+    次の状態に遷移します．<code>book.owner</code> リソースの状態が，<code>"Suzuki"</code> に変わったことが分かります．
+</p>
+<p>
+    同様にして，<code>book.addr</code> リソースをダブルクリックして，<code>Add</code> チャンネルを通じて，<code>add("Satou", "Tokyo")</code> というメッセージを送ります．<br>
+</p>
+<div class="img-center">
+    <img src="../img/DTRAM/DTRAMSimpleAddressBook4.png" class ="before-image-size"><br>
+</div>
+<p>
+    <code>book.addr</code> リソースの子リソースとして，<code>book.addr.Satou</code> リソースが追加されたことが分かります．<br>
+    また，<code>book.addr.Satou</code> リソースの状態が，<code>"Tokyo"</code> になっていることも分かります．
+</p>
+<p>
+    さらに，<code>book.addr</code> リソースをダブルクリックして，<code>add("Tanaka", "Osaka")</code> というメッセージを送ります．<br>
+</p>
+<div class="img-center">
+    <img src="../img/DTRAM/DTRAMSimpleAddressBook5.png" class ="before-image-size"><br>
+</div>
+<p>
+    <code>book.addr</code> リソースの子リソースとして，さらに <code>book.addr.Tanaka</code> リソースが追加され，その状態は <code>"Osaka"</code> になっています．
+</p>
+<p>
+    次に，<code>book.addr</code> リソースをダブルクリックして，<code> del("Satou")</code> というメッセージを送ります．<br>
+</p>
+<div class="img-center">
+    <img src="../img/DTRAM/DTRAMSimpleAddressBook6.png" class ="before-image-size"><br>
+</div>
+<p>
+    del を選択して，<code> del("Satou")</code> を入力します．
+</p>
+<div class="img-center">
+    <img src="../img/DTRAM/DTRAMSimpleAddressBook7.png" class ="before-image-size"><br>
+</div>
+<p>
+    <code>book.addr.Satou</code> リソースが削除されました．
+</p>
+<p>
+    DTRAM ではこのようにして実行が可視化されます．
+</p>
+<hr/>
+<br>
+<a href="#" onclick="window.close()">【タブを閉じる】</a>
+
+</body>
+</html>
