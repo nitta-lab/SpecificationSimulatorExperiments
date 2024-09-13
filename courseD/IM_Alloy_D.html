@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+	<style>
+		c1{
+			color: blue;
+		}
+		c2{
+			color: red;
+		}
+
+	</style>
+    <title>【InventoryManagement(Alloy)】</title>
+</head>
+<body>
+<h1 class="title">
+	【InventoryManagement(Alloy) の課題】
+</h1>
+<p>
+	ここでは，InventoryManagement の Alloy による仕様記述に関する課題に取り組んでいただきます．<br>
+	以下に Alloy で記述された InventoryManagement のモデルを示します．こちらを適宜参照しながら課題を進めてください．<br>
+	Alloy の説明をもう一度ご覧になりたい方は<a href="Alloy.html"target="_blank" rel="noopener noreferrer">こちら</a>へ(別タブが開きます)．
+</p>
+<hr/>
+
+<h2>InventoryManagement の Alloy による仕様記述についての説明</h2>
+<h3><code><c1>sig</c1></code>:</h3>
+<p>
+	Alloy では，商品id の集合を <code>ItemId</code>，商品名の集合を <code>Name</code>，
+	全商品を保管する倉庫の集合を <code>Inventory</code>，商品の集合を <code>Item</code> で表します．<br>
+	以下のモデルでは <code><c1>sig</c1></code> を用いて，<code>ItemId</code>，<code>Name</code>，<code>Inventory</code>，<code>Item</code> の順番にこれらの集合を宣言しています．<br>
+</p>
+<p>
+	<code>Inventory</code> には，<code>ItemId</code> から <code>Item</code> への対応関係が <code>itemDB</code> フィールドとして定義されています．<br>
+	ここで，<code>ItemId</code> の右側の <code><c1>lone</c1></code> は１つの <code>Item</code> に対応する <code>ItemId</code> がたかだか１つしかないことを示しています．<br>
+</p>
+<p>
+	<code>Item</code> の宣言では，商品名を表す <code>name</code> が <code>Name</code> のインスタンスとして，
+	在庫数を表す <code>count</code> が <c1><code>Int</code></c1> のインスタンスとして定義されています．<br>
+</p>
+
+<h3><code><c1>pred</c1></code>:</h3>
+<p>
+	最初の述語として記述されている <code>init</code> は，<code>Inventory</code> のインスタンスである <code>its</code> が初期化されていることを示しています．
+	具体的には述語定義中の <code><c1>no</c1></code>で，<code>its.itemDB</code> が空であることを示しています．<br>
+</p>
+<p>
+	次の <code>itemRegistration</code> は，<code>itemId</code> に対応する商品を登録する前の <code>Inventory</code> のインスタンス <code>its</code> と，
+	登録した後のインスタンス <code>its'</code> の関係を述語として定義しています．ここで <code>quantity</code> は初期数量，<code>n</code> は商品名を示しています．<br>
+	また，述語定義中の <code><c1>some</c1> it: Item</code> は，<code>its</code> のデータベースに登録されていない <code>Item</code> のインスタンス (<code>it</code>) が存在していることを示しており，
+	直観的には <code>Item</code> のインスタンスが生成されたことを示しています．<br>
+</p>
+<p>
+	<code>receivingOrShipping</code> では <code>itemId</code> で登録されている商品に対して入荷か出荷を行った際の操作前の <code>Inventory</code> のインスタンス <code>its</code> と，
+	操作後のインスタンス <code>its'</code> の関係を述語として定義しています．ここで <code>quantity</code> が正の値のときは入荷，負の値のときは出荷を表しています．<br>
+	また，述語定義中の <code><c1>some</c1> it': Item</code> は，<code>its</code> のデータベースに登録されていない <code>Item</code> のインスタンス (<code>it'</code>) が存在していることを示しており，
+	直観的には <code>Item</code> のインスタンスが，出荷か入荷を行うことによって複製されたことを示しています．<br>
+	なお <code>x ++ y -> z</code> は，関係 <code>x</code> 中ですでに <code>y</code> に何らかの値が対応していた場合に，それを <code>y</code> から <code>z</code> への対応に置き換えたものを表しています．関数 <code>plus[x, y]</code> は，加算 <code>x + y</code> を表します．<br>
+</p>
+<p>
+	最後の <code>execute</code> では，<code>init</code>，<code>itemRegistration</code>，<code>receivingOrShipping</code> を
+	この順で呼び出す操作を定義しています．<br>
+	<c1><code>run</code></c1> では，<code>execute</code> を呼び出して仮想実行を行います．
+	この実行の際に，<code><c1>Int</c1></code> で8bitの整数を扱うことができるよう末尾に <code><c2>8</c2></code>  <code><c1>Int</c1></code> という記述を付け加えています．
+</p>
+
+<div style="padding: 10px; margin-bottom: 10px; border: 1px solid #333333; border-radius: 10px;">
+	<pre>
+<c1>sig</c1> ItemId, Name{}
+<c1>sig</c1> Inventory {
+	itemDB: ItemId <c1>lone</c1> -> <c1>lone</c1> Item
+}
+<c1>sig</c1> Item {
+	name : Name,
+	count: <c1>Int</c1>
+}
+
+<c1>pred</c1> init[its: Inventory] {
+	<c1>no</c1> its.itemDB
+}
+
+<c1>pred</c1> itemRegistration[its, its': Inventory, itemId: ItemId, quantity: <c1>Int</c1>, n: Name] {
+	<c1>some</c1> it: Item | {
+		<c1>no</c1> itemId2: ItemId | its.itemDB[itemId2] = it
+		its'.itemDB = its.itemDB + itemId -> it
+		it.name = n
+		it.count = quantity
+	}
+}
+
+<c1>pred</c1> receivingOrShipping[its, its': Inventory, itemId: ItemId, quantity: <c1>Int</c1>] {
+	<c1>some</c1> it': Item | {
+		<c1>no</c1> itemId2: ItemId | its.itemDB[itemId2] = it'
+		its'.itemDB = its.itemDB ++ itemId -> it'
+		it'.name = its.itemDB[itemId].name
+		it'.count = plus[its.itemDB[itemId].count, quantity]
+	}
+}
+
+<c1>pred</c1> execute[] {
+	<c1>some disj</c1> its, its', its'': Inventory, itemId: ItemId, n: Name | {
+		init[its]
+		itemRegistration[its, its', itemId, <c2>100</c2>, n]
+		receivingOrShipping[its', its'', itemId, -<c2>50</c2>]
+	}
+}
+
+<c1>run</c1> execute <c1>for</c1> <c2>2</c2> but <c2>3</c2> Inventory, <c2>8</c2> <c1>Int</c1>
+	</pre>
+</div>
+<hr/>
+
+<h2>モデルの可視化</h2>
+<p>
+	先ほどの InventoryManagement のモデルの構造を，Alloy の可視化ツールを使用して可視化したものを以下の図に示します．<br>
+</p>
+<div class="img-center">
+	<img src="../img/Alloy/Alloy MetaModel Ver InventoryManagement.png", class ="before-image-size"><br>
+</div>
+<p>
+	この図がモデルの実行に依らない，モデルそのものが持つ構造を表していることに注意して下さい．<br>
+	<code>Inventory</code> が，<code>ItemId</code> のインスタンスを <code>Item</code> のインスタンスに対応させる <code>itemDB</code> という
+	フィールドを持っており，<code>Item</code> が <code>Name</code> のインスタンスを参照する <code>name</code> フィールドと，
+	<code><c1>Int</c1></code> のインスタンスを参照する <code>count</code> フィールドを持っていることがわかります．
+</p>
+<hr/>
+
+<h2>InventoryManagement モデルの仮想実行について</h2>
+<p>
+	ここでは，InventoryManagement モデルの仮想実行について説明します．この仮想実行で用いるテストケースは次の通りです．<br>
+	<ol>
+	<li>Inventoryに新しく取り扱う商品を初期数量100で登録します．</li>
+	<li>登録した商品を50個出荷します．</li>
+	</ol>
+</p>
+
+<h3>仮想実行の可視化:</h3>
+<p>
+	このテストケースはモデル中の <code>execute</code> 述語で実装されています．<br>
+    <code>execute</code> の実行を可視化したものを以下に示します．
+</p>
+<div class="img-center">
+	<img src="../img/Alloy/Alloy Ver InventoryManagement.png", class ="before-image-size"><br>
+</div>
+<p>
+	左下にある Inventory2($execute_its) は <code>execute</code> 述語中の変数 <code>its</code> で参照される <code>Inventory</code> のインスタンスであり，<code>init</code> 述語を満たしているため，
+	まだ何の商品(Item)も登録されていない状態になっています．<br>
+</p>
+<p>
+	次に，1番上の段の左にある Inventory1($execute_its') は変数 <code>its'</code> で参照される <code>Inventory</code> のインスタンスで，
+	<code>its</code> で参照される <code>Inventory</code> のインスタンスに対して，<code>Item</code> のインスタンス Item1(itemRegistration_it) を初期数量100個で登録したインスタンスになっています．<br>
+</p>
+<p>
+	Inventory1 の右にあるInventory0($execute_its'') は少し複雑です．<br>
+	まず，Inventory1 において，<code>ItemId</code> で参照される Item のインスタンスは Item1 です．このインスタンスに対して50個出荷した後の <code>Item</code> のインスタンスが Item0 になります．<br>
+	ここで Item0 の在庫数が50個に減少していることに注意して下さい．<br>
+	<code>ItemId</code> で参照される <code>Item</code> のインスタンスが Item1 から Item0 に変わるので，<code>Inventory</code> のインスタンスも Inventory1 から Inventory0 に変わります．
+</p>
+<hr/>
+
+<h2>
+	課題概要
+</h2>
+<p>
+	ここからが課題です．<br>
+	本課題ではまず，上記にて説明を行った InventoryManagement の仕様に，ある機能を追加した仕様を考えます．<br>
+	その仕様のモデルを以下に示します．また，そのモデルの仮想実行を可視化したものをその下に示します．これらの図を見ていただいた上で，２つの設問にお答えいただきます．<br>
+	なお，以下のモデル中にある <code><c1>implies</c1></code> はその前に記述されている条件が成り立っているときは，その後に記述されている論理式または論理式の集合が成り立ち，条件が成り立っていないときは <code><c1>else</c1></code> の後ろに記述されている論理式または論理式の集合が成り立つことを示しています．<br>
+	設問にお答えいただく際は，必ず設問１，設問２の順番でご解答下さい．以下の図と同じものが設問のページにも記載されているのでこのまま設問のページに飛んでいただいてもかまいません．
+</p>
+<div style="padding: 10px; margin-bottom: 10px; border: 1px solid #333333; border-radius: 10px;">
+<pre>
+<c1>sig</c1> ItemId, Name{}
+<c1>sig</c1> Inventory {
+	itemDB: ItemId <c1>lone</c1> -> <c1>lone</c1> Item
+}
+<c1>sig</c1> Item {
+	name : Name,
+	count: <c1>Int</c1>
+}
+
+<c1>pred</c1> init[its: Inventory] {
+	<c1>no</c1> its.itemDB
+}
+
+<c1>pred</c1> itemRegistration[its, its': Inventory, itemId: ItemId, quantity: <c1>Int</c1>, n: Name] {
+	<c1>some</c1> it: Item |	{
+		<c1>no</c1> itemId2: ItemId | its.itemDB[itemId2] = it
+		its'.itemDB = its.itemDB + itemId -> it
+		it.name = n
+		it.count = quantity
+	}
+}
+
+<c1>pred</c1> receivingOrShipping[its, its': Inventory, itemId: ItemId, quantity: <c1>Int</c1>] {
+	<div style="background-color:#EDF7FF;">	plus[its.itemDB[itemId].count, quantity] < <c2>0</c2> <c1>implies</c1> {
+		<c1>all</c1> itemId': ItemId | its'.itemDB[itemId'] = its.itemDB[itemId']
+	}
+	<c1>else</c1> {</div>
+		<c1>some</c1> it': Item | {
+			<c1>no</c1> itemId2: ItemId | its.itemDB[itemId2] = it'
+			its'.itemDB = its.itemDB ++ itemId -> it'
+			it'.name = its.itemDB[itemId].name
+			it'.count = plus[its.itemDB[itemId].count, quantity]
+		}
+	<div style="background-color:#EDF7FF;">	} </div>
+}
+
+<c1>pred</c1> execute[] {
+	<div style="background-color:#EDF7FF;">	<c1>some disj</c1> its, its', its'', its''': Inventory, itemId: ItemId, n: Name | {</div>
+		init[its]
+		itemRegistration[its, its', itemId, <c2>100</c2>, n]
+		<div style="background-color:#EDF7FF;">		receivingOrShipping[its', its'', itemId, -<c2>50</c2>]
+		receivingOrShipping[its'', its''', itemId, -<c2>75</c2>]</div>
+	}
+}
+
+	<div style="background-color:#EDF7FF;"><c1>run</c1> execute <c1>for</c1> <c2>2</c2> <c1>but</c1> <c2>4</c2> Inventory, <c2>8</c2> <c1>Int</c1></div>
+</pre>
+</div>
+
+<div class="img-center">
+	<img src="../img/Alloy/Alloy_Ver_InventoryManagementCheckMinus.png", class ="before-image-size"><br>
+</div>
+
+<p>
+	<strong>
+		<a href="https://docs.google.com/forms/d/e/1FAIpQLSd2Od1xko-uHbTtTXG43F1j3uaqyQEId6h8qpbAXIH0OPjc5w/viewform" target="_blank" rel="noopener noreferrer">
+			設問１ (別タブが開きます)
+		</a>
+	</strong>
+	<br>
+	<strong>
+		<a href="https://docs.google.com/forms/d/e/1FAIpQLSfVVnFMTOhlJaaE546KCKt4rV4qAGGKQW1IkFjezk52bedyEg/viewform" target="_blank" rel="noopener noreferrer">
+			設問２ (別タブが開きます)
+		</a>
+	</strong>
+	<br>
+	<strong>
+		<a href="https://docs.google.com/forms/d/e/1FAIpQLSdjnv1dY34Es5IMBxz4usC3yzIW9AROYK-pLGv7aiVetzVEHQ/viewform" target="_blank" rel="noopener noreferrer">
+			課題評価アンケート (別タブが開きます)
+		</a>
+	</strong>
+	<br>
+	<strong>
+		<a href="https://docs.google.com/forms/d/e/1FAIpQLSdPKDaeEsZlpUYxs9yY1mPXxYtND-hOjbQMiFwxvNO6wHNQig/viewform" target="_blank" rel="noopener noreferrer">
+			InventoryManagement についてのアンケート (別タブが開きます)
+		</a>
+	</strong>
+</p>
+
+<hr>
+<br>
+<a href="./../Closing.html">【実験終了説明】へ</a>
+</body>
+
+<style>
+	.title{
+		text-align: center;
+	}
+	.links-manual-A{
+        display: flex;
+        flex-direction: column;
+    }
+    .img-center{
+    	display: flex;
+    	justify-content: center;
+    	align-items: center;
+    }
+    .before-image-size{
+        max-width: 100%;
+        height: auto;
+    }
+    .after-image-size{
+        max-width: 100%;
+        height: auto;
+    }
+</style>
+
+</html>

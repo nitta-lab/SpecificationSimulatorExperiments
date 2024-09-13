@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+	<meta charset="UTF-8">
+	<style>
+		c1{
+			color: blue;
+		}
+		c2{
+			color: red;
+		}
+
+	</style>
+	<title>【SimpleTwitter(DTRAM)】</title>
+</head>
+<body>
+<h1 class="title">
+	【SimpleTwitter(DTRAM) の課題】
+</h1>
+<p>
+	ここでは，SimpleTwitter の DTRAM による仕様記述に関する課題に取り組んでいただきます．<br>
+	以下に DTRAM で記述された SimpleTwitter のモデルを示します．こちらを適宜参照しながら課題を進めてください．
+</p>
+<hr/>
+
+<h2>SimpleTwitter の DTRAM による記述についての説明</h2>
+<p>
+	DTRAM では，SimpleTwitter の仕様を以下のような階層化されたリソースで表します．<br>
+	<ul>
+		<li><code>accounts</code>：アカウント全体を管理するデータベース</li>
+		<li><code>accounts.{accountId}</code>：<code>accountId</code> で登録されているアカウント</li>
+		<li><code>accounts.{accountId}.name</code>：<code>accountId</code> で登録されているアカウントのアカウント名</li>
+		<li><code>accounts.{accountId}.tweets</code>：<code>accountId</code> で登録されているアカウントのツイートリスト</li>
+		<li><code>accounts.{accountId}.tweets.{tid}</code>：<code>accountId</code> で登録されているアカウントのツイートリストの <code>tid</code> 番目のツイート</li>
+	</ul>
+
+	DTRAM では，SimpleTwitter のモデルを以下のようなチャンネル単位で記述していきます．<br>
+	アカウント登録用のイベントチャンネルを <code>Signup</code>，<code>accountId</code> で登録されているアカウントに対してツイートを行うためのイベントチャンネルを <code>Tweet(accountId:<c1>Str</c1>)</code> として宣言しています．<br>
+</p>
+<p>
+	<code>Signup</code> チャンネルでは <code>accounts</code> リソースが，メッセージ <code>signUp(accountId, name)</code> を受け取ると， リソースの状態が <code>accountDB</code> から <code>insert(accountDB, accountId, {"name": name, "tweets": nil})</code> に変わることを示しています．<code>nil</code> は空のマップやリストを表しています．<br>
+	ここで，関数 <code>insert(x, y, z)</code> は，写像 <code>x</code> に対し，キー <code>y</code> と値 <code>z</code> の対応を追加した結果得られる写像を返す関数です．また <code>{"name": name, "tweets": nil}</code> は，<code>"name"</code> と <code>"tweets"</code> をキーに持つ JSON オブジェクトを表しています．<br>
+</p>
+<p>
+	<code>Tweet(accountId:<c1>Str</c1>)</code> チャンネルでは <code>accounts.{accountId}.tweets</code> リソースがメッセージ <code>tweet(contents)</code> を受け取ると，
+	遷移前の状態 <code>tweetList</code> が <code>append(tweetList, contents)</code> に変わることを示しています．<br>
+	ここで，関数 <code>append(x, y)</code> は，リスト <code>x</code> に対し，オブジェクト <code>y</code> を末尾に追加した結果得られるリストを返す関数です．<br>
+</p>
+
+<div style="padding: 10px; margin-bottom: 10px; border: 1px solid #333333; border-radius: 10px;">
+	<pre>
+<c1>channel</c1> Signup {
+	<c1>out</c1> accounts(accountDB:<c1>Map</c1>, signUp(accountId:<c1>Str</c1>, name:<c1>Str</c1>)) = insert(accountDB, accountId, {"name": name, "tweets": nil})
+}
+
+<c1>channel</c1> Tweet(accountId:<c1>Str</c1>) {
+	<c1>out</c1> accounts.{accountId}.tweets(tweetList:<c1>List</c1>, tweet(contents:<c1>Str</c1>)) = append(tweetList, contents)
+}
+	</pre>
+</div>
+<hr/>
+
+<h2>モデルの可視化</h2>
+<p>
+	先ほどの SimpleTwitter のモデルのリソースとチャンネルを，DTRAM のモデリングツールを使用して可視化したものを以下の図に示します．<br>
+</p>
+<div class="img-center">
+	<img src="../img/DTRAM/SimpleTwitter/DTRAM Ver SimpleTwitter architecture Visualize.png", class ="before-image-size"><br>
+</div>
+<p>
+	この図がモデルの実行に依らない，リソースとチャンネルの関係を表していることに注意して下さい．<br>
+	図の中央にある <code>accounts</code> リソースは <code>Signup</code> チャンネルからアカウントを登録するメッセージを受け取ります．<br>
+	<code>accounts</code> リソースの子リソースである，<code>accounts.{accountId}</code> リソースはアカウントを表しています．<br>
+	このリソース名に含まれる <code>accountId</code> はアカウントidを表すパスパラメータで，一意なアカウントの特定を可能にしています．<br>
+	<code>accounts.{accountId}</code> リソースの子リソースである <code>accounts.{accountId}.tweets</code> リソースは <code>accounts.{accountId}</code> のツイートリストを表しており，
+	<code>Tweet</code> チャンネルからツイートを行うメッセージを受け取ります．
+</p>
+<hr/>
+
+<h2>SimpleTwitter モデルの仮想実行について</h2>
+<p>
+	ここでは，SimpleTwitter モデルの仮想実行について説明します．この仮想実行で用いるテストケースは次の通りです．<br>
+<ol>
+	<li>accounts にアカウント名が "Satou" という新しいアカウントをアカウントid @123 で登録します．</li>
+	<li>登録したアカウント(Satou)で "Hello" というツイートを行います．</li>
+</ol>
+</p>
+
+<h3>仮想実行の可視化:</h3>
+<p>
+	シミュレーションツールを使用すると与えられたモデルに対して，任意の仮想実行を行うことができます．<br>
+	ここでは上で示したテストケースに従って行った仮想実行を可視化したものを示していきます．まず，システムの初期状態を可視化したものが以下の図です．
+</p>
+
+<div class="img-center">
+	<img src="../img/DTRAM/SimpleTwitter/DTRAM 1 VerSimpleTwitter.png", class ="before-image-size"><br>
+</div>
+<p>
+	初期状態では，<code>accounts</code> リソースには何のアカウントも登録されていない状態になっています．<br>
+	次に，<code>accounts</code> にアカウント名が "Satou" のアカウントを登録するため，<code>accounts</code> リソースをダブルクリックします．
+</p>
+
+<div class="img-center">
+	<img src="../img/DTRAM/SimpleTwitter/DTRAM 2 VerSimpleTwitter.png", class ="before-image-size"><br>
+</div>
+<p>
+	<strong><code>signUp</code></strong> というアカウントを登録するためのメッセージを選択します．
+</p>
+
+<div class="img-center">
+	<img src="../img/DTRAM/SimpleTwitter/DTRAM 3 VerSimpleTwitter.png", class ="before-image-size"><br>
+</div>
+<p>
+	<code>signUp</code> メッセージのシグニチャが表示されます．<br>
+	<code>accountId</code> はアカウントid，<code>name</code> はアカウント名を表します．
+</p>
+
+<div class="img-center">
+	<img src="../img/DTRAM/SimpleTwitter/DTRAM 4 VerSimpleTwitter.png", class ="before-image-size"><br>
+</div>
+<p>
+	ここでは，<code>signUp("@123", "Satou")</code> を入力します．
+</p>
+
+<div class="img-center">
+	<img src="../img/DTRAM/SimpleTwitter/DTRAM 5 VerSimpleTwitter.png", class ="before-image-size"><br>
+</div>
+<p>
+	次の状態に遷移し，遷移後の状態が表示されます．@123というidを持つアカウント <code>accounts.@123</code> が <code>accounts</code> の子リソースとして生成されていることがわかります．<br>
+	<code>accounts.@123</code> のツイートリスト <code>accounts.@123.tweets</code> が 空のリスト(nil)，アカウント名 <code>accounts.@123.name</code> が "Satou" となっていることを確認できます．<br>
+	次に，登録したアカウント <code>accounts.@123</code> でツイートを行いたいので，<code>accounts.@123.tweets</code> リソースをダブルクリックします．
+</p>
+
+<div class="img-center">
+	<img src="../img/DTRAM/SimpleTwitter/DTRAM 6 VerSimpleTwitter.png", class ="before-image-size"><br>
+</div>
+<p>
+	メッセージを選択する画面が同様に表示されますので，ツイートを行う <strong><code>tweet</code></strong> というメッセージを選択します．
+</p>
+
+<div class="img-center">
+	<img src="../img/DTRAM/SimpleTwitter/DTRAM 7 VerSimpleTwitter.png", class ="before-image-size"><br>
+</div>
+<p>
+	ツイート内容の入力が可能な画面が表示されますので，ここでは <code>tweet("Hello")</code> と入力して実行します．<br>
+</p>
+
+<div class="img-center">
+	<img src="../img/DTRAM/SimpleTwitter/DTRAM 9 VerSimpleTwitter.png", class ="before-image-size"><br>
+</div>
+<p>
+	次の状態に遷移したため，Hello というツイート内容を持つツイート <code>accounts.@123.tweets.0</code> が <code>accounts.@123.tweets</code> の子リソースとしてツイートリストの0番目に生成されていることが確認できました．
+</p>
+<hr/>
+
+<h2>
+	課題概要
+</h2>
+<p>
+	ここからが課題です．<br>
+	本課題ではまず，上記にて説明を行った <code>SimpleTwitter</code> の仕様に，ある機能を追加した仕様を考えます．<br>
+	その仕様のモデルを以下に示します．また，そのモデルの仮想実行を可視化したものをその下に示します．これらの図を見ていただいた上で，２つの設問にお答えいただきます．<br>
+	設問にお答えいただく際は，必ず設問１，設問２の順番でご解答下さい．以下の図と同じものが設問のページにも記載されているのでこのまま設問のページに飛んでいただいてもかまいません．
+</p>
+<div style="padding: 10px; margin-bottom: 10px; border: 1px solid #333333; border-radius: 10px;">
+<pre>
+<c1>channel</c1> Signup {
+	<c1>out</c1> accounts(accountDB:<c1>Map</c1>, signUp(accountId:<c1>Str</c1>, name:<c1>Str</c1>)) = insert(accountDB, accountId, {"name": name, "tweets": nil})
+}
+
+<c1>channel</c1> Tweet(accountId:<c1>Str</c1>) {
+	<c1>out</c1> accounts.{accountId}.tweets(tweetList:<c1>List</c1>, tweet(contents:<c1>Str</c1>)) = append(tweetList, contents)
+}
+
+<div style="background-color:#EDF7FF;"><c1>channel</c1> ChangeName(accountId:<c1>Str</c1>) {
+	<c1>out</c1> accounts.{accountId}.name(prevNamr:<c1>Str</c1>, changeName(name:<c1>Str</c1>)) = name
+}</div>
+
+
+</pre>
+</div>
+
+<h3>1:</h3>
+<div class="img-center">
+	<img src="../img/DTRAM/SimpleTwitter/DTRAM 1 VerSimpleTwitter.png", class ="before-image-size"><br>
+</div>
+<h3>2:</h3>
+<div class="img-center">
+	<img src="../img/DTRAM/SimpleTwitter/DTRAM 4 VerSimpleTwitter.png", class ="before-image-size"><br>
+</div>
+<h3>3:</h3>
+<div class="img-center">
+	<img src="../img/DTRAM/SimpleTwitter/DTRAM 5 VerSimpleTwitter.png", class ="before-image-size"><br>
+</div>
+<h3>4:</h3>
+<div class="img-center">
+	<img src="../img/DTRAM/SimpleTwitter/ChangeName/DTRAM_kadai4_SimpleTwitter.png", class ="before-image-size"><br>
+</div>
+<h3>5:</h3>
+<div class="img-center">
+	<img src="../img/DTRAM/SimpleTwitter/ChangeName/DTRAM_1_ChangeName_VerSimpleTwitter.png", class ="before-image-size"><br>
+</div>
+
+<p>
+	<strong>
+		<a href="https://docs.google.com/forms/d/e/1FAIpQLSe6QURUOZIrr3tuiFnWhhMGQHEQw8LpoZo_LDoNbFVQffa-Yg/viewform" target="_blank" rel="noopener noreferrer">
+			設問１ (別タブが開きます)
+		</a>
+	</strong>
+	<br>
+	<strong>
+		<a href="https://docs.google.com/forms/d/e/1FAIpQLSelznV2ONxErsKO5w51-CIHEh4j5af8C0NbuGJyGNaShlVi1w/viewform" target="_blank" rel="noopener noreferrer">
+			設問２ (別タブが開きます)
+		</a>
+	</strong>
+	<br>
+	<strong>
+		<a href="https://docs.google.com/forms/d/e/1FAIpQLSd30uN_0QS4joVTL3KQ-EH-QOrsoA7EyhlOfuprQgaclGjMWQ/viewform" target="_blank" rel="noopener noreferrer">
+			課題評価アンケート (別タブが開きます)
+		</a>
+	</strong>
+</p>
+
+<hr>
+<br>
+<a href="Alloy.html">【Alloy の概要説明】へ</a>
+</body>
+
+<style>
+	.title{
+		text-align: center;
+	}
+	.links-manual-A{
+		display: flex;
+		flex-direction: column;
+	}
+	.img-center{
+		display: flex;
+		justify-content: center;
+		align-items: center;
+	}
+	.before-image-size{
+		max-width: 100%;
+		height: auto;
+	}
+	.after-image-size{
+		max-width: 100%;
+		height: auto;
+	}
+</style>
+
+</html>

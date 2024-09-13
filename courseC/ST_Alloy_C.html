@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+	<meta charset="UTF-8">
+	<style>
+		c1{
+			color: blue;
+		}
+		c2{
+			color: red;
+		}
+
+	</style>
+	<title>【SimpleTwitter(Alloy)】</title>
+</head>
+<body>
+<h1 class="title">
+	【SimpleTwitter(Alloy) の課題】
+</h1>
+<p>
+	ここでは，SimpleTwitter の Alloy による仕様記述に関する課題に取り組んでいただきます．<br>
+	以下に Alloy で記述された SimpleTwitter のモデルを示します．こちらを適宜参照しながら課題を進めてください．<br>
+	Alloy の説明をもう一度ご覧になりたい方は<a href="Alloy.html"target="_blank" rel="noopener noreferrer">こちら</a>へ(別タブが開きます)．
+</p>
+<hr/>
+
+<h2>SimpleTwitter の Alloy による仕様記述についての説明</h2>
+<h3><code><c1>sig</c1></code>:</h3>
+<p>
+	Alloy では，アカウントidの集合を <code>AccountId</code>，アカウント名の集合を <code>Name</code>，
+	ツイートの集合を <code>Tweet</code>，アカウントデータベースの集合を <code>Accounts</code>，アカウントの集合を <code>Account</code>，ツイートリストの集合を <code>List</code> で表します．<br>
+	以下のモデルでは <code><c1>sig</c1></code> を用いて，<code>AccountId</code>，<code>Name</code>，<code>Tweet</code>，<code>Accounts</code>，<code>Account</code>，<code>List</code> の順番にこれらの集合を宣言しています．<br>
+</p>
+<p>
+	<code>Accounts</code> には，<code>AccountId</code> から <code>Account</code> への対応関係が <code>accountDB</code> フィールドとして定義されています．<br>
+	ここで，<code>AccountId</code> の右側の <code><c1>lone</c1></code> は１つの <code>Account</code> に対応する <code>AccountId</code> がたかだか１つしかないことを示しています．<br>
+</p>
+<p>
+	<code>Account</code> の宣言では，アカウント名を表す <code>name</code> が <code>Name</code> のインスタンスとして，
+	ツイートリストを表す <code>tweets</code> が <code>List</code> のインスタンスとして定義されています．<br>
+	<!--<code>List</code> では，<code>size</code> が <code>Int</code> のインスタンスとして，
+	<c1><code>Int</code></c1> から <code>Tweet</code> への対応関係が <code>element</code> フィールドとして定義されています．<br>-->
+</p>
+
+<h3><code><c1>pred</c1></code>:</h3>
+<p>
+	最初の述語として記述されている <code>init</code> は，<code>Accounts</code> のインスタンスである <code>acs</code> が初期化されていることを示しています．
+	具体的には述語定義中の <code><c1>no</c1></code>で，<code>acs.accountDB</code> が空であることを示しています．<br>
+</p>
+<p>
+	次の <code>signUp</code> は，<code>id</code> に対応するアカウントを登録する前の <code>Accounts</code> のインスタンス <code>acs</code> と，
+	登録した後のインスタンス <code>acs'</code> の関係を述語として定義しています．ここで <code>n</code> はアカウント名を示しています．<br>
+	また，述語定義中の <code><c1>some</c1> ac: Account</code> は，<code>acs</code> のデータベースに登録されていない <code>Account</code> のインスタンス (<code>ac</code>) が存在していることを示しており，
+	直観的には <code>Account</code> のインスタンスが生成されたことを示しています．<br>
+</p>
+<p>
+	<code>tweet</code> では <code>id</code> で登録されているアカウントに対してツイートを行った際の操作前の <code>Accounts</code> のインスタンス <code>acs</code> と，
+	操作後のインスタンス <code>acs'</code> の関係を述語として定義しています．ここで <code>contents</code> はツイートの内容を表しています．<br>
+	述語定義中の <code><c1>some</c1> ac': Account</code> は，<code>acs</code> のデータベースに登録されていない <code>Account</code> のインスタンス (<code>ac'</code>) が存在していることを示しており，
+	直観的には <code>Account</code> のインスタンスが，ツイートを行うことによって複製されたことを示しています．<br>
+	なお <code>x ++ y -> z</code> は，関係 <code>x</code> 中ですでに <code>y</code> に何らかの値が対応していた場合に，それを <code>y</code> から <code>z</code> への対応に置き換えたものを表しています．関数 <code>plus[x, y]</code> は加算 <code>x + y</code> を，関数 <code>minus[x, y]</code> は減算 <code>x - y</code> を表します．<br>
+	また <code><c1>implies</c1></code> は，その前に記述されている条件が成り立っているときは，その後に記述されている論理式または論理式の集合が成り立ち，条件が成り立っていないときは <code><c1>else</c1></code> の後ろに記述されている論理式または論理式の集合が成り立つことを示しています．<br>
+</p>
+<p>
+	最後の <code>execute</code> では，<code>init</code>，<code>signUp</code>，<code>tweet</code> をこの順で呼び出す操作を定義しています．<br>
+	<c1><code>run</code></c1> では，<code>execute</code> を呼び出して仮想実行を行います．
+</p>
+
+<div style="padding: 10px; margin-bottom: 10px; border: 1px solid #333333; border-radius: 10px;">
+	<pre>
+<c1>sig</c1> AccountId, Name, Tweet { }
+<c1>sig</c1> Accounts {
+	accountDB: AccountId <c1>lone</c1> -> <c1>lone</c1> Account
+}
+<c1>sig</c1> Account {
+	name: Name,
+	tweets: List
+}
+
+<c1>sig</c1> List {
+	size: <c1>Int</c1>,
+	element: <c1>Int</c1> -> <c1>lone</c1> Tweet
+}
+
+<c1>pred</c1> init[acs: Accounts] {
+	<c1>no</c1> acs.accountDB
+}
+
+<c1>pred</c1> signUp[acs, acs': Accounts, id: AccountId, n: Name] {
+	<c1>some</c1> ac: Account | {
+		<c1>no</c1> id2: AccountId | acs.accountDB[id2] = ac
+		acs'.accountDB = acs.accountDB + id -> ac
+		ac.name = n
+		ac.tweets.size = <c2>0</c2>
+		<c1>no</c1> ac.tweets.element
+	}
+}
+
+<c1>pred</c1> tweet[acs, acs': Accounts, id: AccountId, contents: Tweet] {
+	<c1>some</c1> ac': Account | {
+		<c1>no</c1> id2: AccountId | acs.accountDB[id2] = ac'
+		acs'.accountDB = acs.accountDB ++ id -> ac'
+		ac'.name = acs.accountDB[id].name
+		ac'.tweets != acs.accountDB[id].tweets
+		ac'.tweets.size = plus[acs.accountDB[id].tweets.size, <c2>1</c2>]
+		ac'.tweets.element[minus[ac'.tweets.size, <c2>1</c2>]] = contents
+		<c1>all</c1> n: <c1>Int</c1> | n != minus[ac'.tweets.size, <c2>1</c2>] <c1>implies</c1> ac'.tweets.element[n] = acs.accountDB[id].tweets.element[n]
+	}
+}
+
+<c1>pred</c1> execute[] {
+	<c1>some disj</c1> acs, acs', acs'': Accounts, id: AccountId, n: Name, contents: Tweet | {
+		init[acs]
+		signUp[acs, acs', id, n]
+		tweet[acs', acs'', id, contents]
+	}
+}
+
+<c1>run</c1> execute <c1>for</c1> <c2>2</c2> <c1>but</c1> <c2>3</c2> Accounts
+	</pre>
+</div>
+<hr/>
+
+<h2>モデルの可視化</h2>
+<p>
+	先ほどの SimpleTwitter のモデルの構造を，Alloy の可視化ツールを使用して可視化したものを以下の図に示します．<br>
+</p>
+<div class="img-center">
+	<img src="../img/Alloy/Alloy MetaModel Ver SimpleTwitter.png", class ="before-image-size"><br>
+</div>
+<p>
+	この図がモデルの実行に依らない，モデルそのものが持つ構造を表していることに注意して下さい．<br>
+	<code>Accounts</code> が，<code>AccountId</code> のインスタンスを <code>Account</code> のインスタンスに対応させる <code>accountDB</code> というフィールドを持っており，
+	<code>Account</code> が <code>Name</code> のインスタンスを参照する <code>name</code> フィールドと，<code>List</code> のインスタンスを参照する <code>tweets</code> フィールドを，<br>
+	<code>List</code> が <code><c1>Int</c1></code> のインスタンスを参照する <code>size</code> フィールドと，
+	<code><c1>Int</c1></code> のインスタンスを <code>Tweet</code> のインスタンスに対応させる <code>element</code> フィールドをもっていることがわかります．
+</p>
+<hr/>
+
+<h2>SimpleTwitter モデルの仮想実行について</h2>
+<p>
+	ここでは，SimpleTwitter モデルの仮想実行について説明します．この仮想実行で用いるテストケースは次の通りです．<br>
+<ol>
+	<li>Accounts に新しいアカウントを登録します．</li>
+	<li>登録したアカウントでツイートを行います．</li>
+</ol>
+</p>
+
+<h3>仮想実行の可視化:</h3>
+<p>
+	このテストケースはモデル中の <code>execute</code> 述語で実装されています．<br>
+	<code>execute</code> の仮想実行を可視化したものを以下に示します．
+</p>
+<div class="img-center">
+	<img src="../img/Alloy/Alloy Ver SimpleTwitter.png", class ="before-image-size"><br>
+</div>
+<p>
+	左下にある Accounts2($execute_acs) は <code>execute</code> 述語中の変数 <code>acs</code> で参照される <code>Accounts</code> のインスタンスであり，<code>init</code> 述語を満たしているため，
+	まだ何のアカウント(Account)も登録されていない状態になっています．<br>
+</p>
+<p>
+	次に，1番上の段の左にある Accounts1($execute_acs') は変数 <code>acs'</code> で参照される <code>Account</code> のインスタンスで，
+	<code>acs</code> で参照される <code>Account</code> のインスタンスに対して，<code>Account</code> のインスタンス Account1($signUp_ac) をツイートリストの要素数が0の状態で登録したインスタンスになっています．<br>
+</p>
+<p>
+	Accounts1 の右にある Accounts0($execute_acs'') は少し複雑です．<br>
+	まず，Accounts1 において，<code>AccountId</code> で参照される Account のインスタンスは Account1 です．このインスタンスに対してツイートを行った後の Account のインスタンスは Account0 になります．<br>
+	ここで Account0 のツイートリストの要素数が1に増加していることに注意して下さい．<br>
+	<code>AccountId</code> で参照される <code>Account</code> のインスタンスが Account1 から Account0 に変わるので，<code>Accounts</code> のインスタンスも Accounts1 から Accounts0 に変わります．
+</p>
+<hr/>
+
+<h2>
+	課題概要
+</h2>
+<p>
+	ここからが課題です．<br>
+	本課題ではまず，上記にて説明を行った SimpleTwitter の仕様に，ある機能を追加した仕様を考えます．<br>
+	その仕様のモデルを以下に示します．また，そのモデルの仮想実行を可視化したものをその下に示します．これらの図を見ていただいた上で，２つの設問にお答えいただきます．<br>
+	設問にお答えいただく際は，必ず設問１，設問２の順番でご解答下さい．以下の図と同じものが設問のページにも記載されているのでこのまま設問のページに飛んでいただいてもかまいません．
+</p>
+<div style="padding: 10px; margin-bottom: 10px; border: 1px solid #333333; border-radius: 10px;">
+<pre>
+<c1>sig</c1> AccountId, Name, Tweet { }
+<c1>sig</c1> Accounts {
+	accountDB: AccountId <c1>lone</c1> -> <c1>lone</c1> Account
+}
+<c1>sig</c1> Account {
+	name: Name,
+	tweets: List
+}
+
+<c1>sig</c1> List {
+	size: <c1>Int</c1>,
+	element: <c1>Int</c1> -> <c1>lone</c1> Tweet
+}
+
+<c1>pred</c1> init[acs: Accounts] {
+	<c1>no</c1> acs.accountDB
+}
+
+<c1>pred</c1> signUp[acs, acs': Accounts, id: AccountId, n: Name] {
+	<c1>some</c1> ac: Account | {
+		<c1>no</c1> id2: AccountId | acs.accountDB[id2] = ac
+		acs'.accountDB = acs.accountDB + id -> ac
+		ac.name = n
+		ac.tweets.size = <c2>0</c2>
+		<c1>no</c1> ac.tweets.element
+	}
+}
+
+<c1>pred</c1> tweet[acs, acs': Accounts, id: AccountId, contents: Tweet] {
+	<c1>some</c1> ac': Account | {
+		<c1>no</c1> id2: AccountId | acs.accountDB[id2] = ac'
+		acs'.accountDB = acs.accountDB ++ id -> ac'
+		ac'.name = acs.accountDB[id].name
+		ac'.tweets != acs.accountDB[id].tweets
+		ac'.tweets.size = plus[acs.accountDB[id].tweets.size, <c2>1</c2>]
+		ac'.tweets.element[minus[ac'.tweets.size, <c2>1</c2>]] = contents
+		<c1>all</c1> n: <c1>Int</c1> | n != minus[ac'.tweets.size, <c2>1</c2>] <c1>implies</c1> ac'.tweets.element[n] = acs.accountDB[id].tweets.element[n]
+	}
+}
+
+<div style="background-color:#EDF7FF;"><c1>pred</c1> changeName[acs, acs': Accounts, id: AccountId, n: Name] {
+	<c1>some</c1> ac': Account | {
+		<c1>no</c1> id2: AccountId | acs.accountDB[id2] = ac'
+		acs'.accountDB = acs.accountDB ++ id -> ac'
+		ac'.name = n
+		ac'.tweets = acs.accountDB[id].tweets
+	}
+}</div>
+
+<c1>pred</c1> execute[] {
+	<div style="background-color:#EDF7FF;">	<c1>some disj</c1> acs, acs', acs'', acs''': Accounts, id: AccountId, <c1>disj</c1> n, n': Name, contents: Tweet | {</div>
+		init[acs]
+		signUp[acs, acs', id, n]
+		tweet[acs', acs'', id, contents]
+		<div style="background-color:#EDF7FF;">		changeName[acs'', acs''', id, n']</div>
+	}
+}
+
+<div style="background-color:#EDF7FF;"><c1>run</c1> execute <c1>for</c1> <c2>2</c2> <c1>but</c1> <c2>4</c2> Accounts, <c2>3</c2> Account</div>
+
+</pre>
+</div>
+
+<div class="img-center">
+	<img src="../img/Alloy/Alloy_ChangeName_VerSimpleTwitter.png", class ="before-image-size"><br>
+</div>
+
+<p>
+	<strong>
+		<a href="https://docs.google.com/forms/d/e/1FAIpQLSee3Mcp2BGtT2fPSwYtOuyD5pJmGRTg604vT7cqBwRNUOzE-g/viewform" target="_blank" rel="noopener noreferrer">
+			設問１ (別タブが開きます)
+		</a>
+	</strong>
+	<br>
+	<strong>
+		<a href="https://docs.google.com/forms/d/e/1FAIpQLScdhAgHpwJx7ZHq58nDOx4vr1Fk-2V2cM6qSjvEbGR_0TylwQ/viewform" target="_blank" rel="noopener noreferrer">
+			設問２ (別タブが開きます)
+		</a>
+	</strong>
+	<br>
+	<strong>
+		<a href="https://docs.google.com/forms/d/e/1FAIpQLScdhAgHpwJx7ZHq58nDOx4vr1Fk-2V2cM6qSjvEbGR_0TylwQ/viewform" target="_blank" rel="noopener noreferrer">
+			課題評価アンケート (別タブが開きます)
+		</a>
+	</strong>
+	<br>
+	<strong>
+		<a href="https://docs.google.com/forms/d/e/1FAIpQLSeMn8H08TXvZp0Xm5E7wmFtTdWdJr_3-z2CLCOX9UJd4B6HkQ/viewform" target="_blank" rel="noopener noreferrer">
+			SimpleTwitter についてのアンケート (別タブが開きます)
+		</a>
+	</strong>
+</p>
+
+<hr>
+<br>
+<a href="./../Closing.html">【実験終了説明】へ</a>
+</body>
+
+<style>
+	.title{
+		text-align: center;
+	}
+	.links-manual-A{
+		display: flex;
+		flex-direction: column;
+	}
+	.img-center{
+		display: flex;
+		justify-content: center;
+		align-items: center;
+	}
+	.before-image-size{
+		max-width: 100%;
+		height: auto;
+	}
+	.after-image-size{
+		max-width: 100%;
+		height: auto;
+	}
+</style>
+
+</html>

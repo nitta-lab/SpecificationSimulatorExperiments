@@ -1,0 +1,9 @@
+channel ItemRegistration {
+	out inventory(itemDB:Map, registerItem(itemId:Str, itemName:Str, quantity:Int)) = insert(itemDB, itemId, {"count": quantity, "name": itemName})
+}
+
+channel ReceivingOrShipping(itemId:Str) {
+	out inventory.{itemId}.count(prev_quantity:Int, receiveOrShip(quantity:Int)) = if(prev_quantity + quantity >= 0, 
+																						prev_quantity + quantity, 
+																						prev_quantity)
+}

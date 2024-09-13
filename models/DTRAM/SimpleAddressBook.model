@@ -1,0 +1,11 @@
+channel Init {
+	out book.owner(pre_name: Str, init(name: Str)) = name
+}
+
+channel Add {
+	out book.addr(pre_addr: Map, add(name: Str, addr: Str)) = insert(pre_addr, name, addr)
+}
+
+channel Del {
+	out book.addr(pre_addr: Map, del(name: Str)) = delete(pre_addr, name)
+}

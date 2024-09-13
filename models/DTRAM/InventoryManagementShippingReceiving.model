@@ -1,0 +1,11 @@
+channel ItemRegistration {
+	out inventory(itemDB:Map, registerItem(itemId:Str, itemName:Str, quantity:Int)) = insert(itemDB, itemId, {"count": quantity, "name": itemName})
+}
+
+channel Receiving(itemId:Str) {
+	out inventory.{itemId}.count(prev_quantity:Int, receive(quantity:Int)) = prev_quantity + quantity
+}
+
+channel Shipping(itemId:Str) {
+	out inventory.{itemId}.count(prev_quantity:Int, ship(quantity:Int)) = prev_quantity - quantity
+}

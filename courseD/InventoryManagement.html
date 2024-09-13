@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>【酒屋の在庫管理システム（InventoryManagement）の仕様説明】</title>
+</head>
+<body>
+<h1>【酒屋の在庫管理システム（InventoryManagement）の仕様説明】</h1>
+<p>
+    本実験で取り組んでいただく4つの課題のうちの残り2つは，簡単な酒屋の在庫管理システムを対象にしたものです．以降は，この酒屋の在庫管理システムを InventoryManagement と呼びます．<br>
+    以下に，InventoryManagement の仕様を示します．
+</p>
+<hr/>
+<h2>InventoryManagement の仕様</h2>
+<p>
+    InventoryManagement は，ある酒屋の在庫管理を行うシステムです．酒類の商品毎に在庫数を管理することができます．
+    InventoryManagement の仕様は次の通りです．
+    <ul>
+        <li>酒類の商品の在庫が倉庫に保管されている．</li>
+        <li>各商品は，商品idによって一意に特定される．</li>
+        <li>商品ごとに商品名が定義されている．</li>
+        <li>商品ごとに在庫数が記録されている．</li>
+        <li>倉庫は商品が1つも登録されていない状態を初期状態とする．</li>
+        <li>itemRegistration 操作によって，指定した商品idで，指定した名前の商品を，指定した初期数量で登録することができる．</li>
+        <li>receivingOrShipping 操作によって，指定した商品idの商品を，指定した数量だけ出荷または入荷することができる．数量が正のときは入荷，負の時は出荷を意味する．</li>
+    </ul>
+    残り2つの課題では，InventoryManagement の仕様の DTRAM による記述と，Alloy による記述を扱っていきます．
+</p>
+<hr/>
+<br>
+<a href="IM_DTRAM_D.html">【InventoryManagement(DTRAM)】へ</a>
+
+</body>
+</html>

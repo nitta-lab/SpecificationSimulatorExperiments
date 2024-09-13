@@ -1,0 +1,11 @@
+channel Signup {
+	out accounts(accountDB:Map, signUp(accountId:Str, name:Str)) = insert(accountDB, accountId, {"name": name, "tweets": nil})
+}
+
+channel Tweet(accountId:Str) {
+	out accounts.{accountId}.tweets(tweetList:List, tweet(contents:Str)) = append(tweetList, contents)
+}
+
+channel ChangeName(accountId:Str) {
+	out accounts.{accountId}.name(prevNamr:Str, changeName(name:Str)) = name
+}

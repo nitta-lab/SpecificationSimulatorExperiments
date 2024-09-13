@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+	<meta charset="UTF-8">
+	<style>
+		c1{
+			color: blue;
+		}
+		c2{
+			color: red;
+		}
+
+	</style>
+	<title>【InventoryManagement(DTRAM)】</title>
+</head>
+<body>
+<h1 class="title">
+	【InventoryManagement(DTRAM) の課題】
+</h1>
+<p>
+	ここでは，InventoryManagement の DTRAM による仕様記述に関する課題に取り組んでいただきます．<br>
+	以下に DTRAM で記述された InventoryManagement のモデルを示します．こちらを適宜参照しながら課題を進めてください．<br>
+	DTRAM の説明をもう一度ご覧になりたい方は<a href="DTRAM.html"target="_blank" rel="noopener noreferrer">こちら</a>へ(別タブが開きます)．
+</p>
+<hr/>
+
+<h2>InventoryManagement の DTRAM による記述についての説明</h2>
+<p>
+	DTRAMでは，InventoryManagement の仕様を以下のような階層化されたリソースで表します．<br>
+	<ul>
+		<li><code>inventory</code>：全商品を保管する倉庫</li>
+		<li><code>inventory.{itemId}</code>：<code>itemId</code> で登録されている商品</li>
+		<li><code>inventory.{itemId}.count</code>：<code>itemId</code> で登録されている商品の在庫数</li>
+		<li><code>inventory.{itemId}.name</code>：<code>itemId</code> で登録されている商品の商品名</li>
+	</ul>
+
+	DTRAM では，InventoryManagement のモデルを以下のようなチャンネル単位で記述していきます．<br>
+	商品登録用のイベントチャンネルを <code>ItemRegistration</code> ，<code>itemId</code> で登録されている商品に対して入荷か出荷を行うためのイベントチャンネルを <code>ReceivingOrShipping(itemId:<c1>Str</c1>)</code> として宣言しています．<br>
+</p>
+<p>
+	<code>ItemRegistration</code> チャンネルでは <code>inventory</code> リソースが，メッセージ <code>registerItem(itemId, itemName, quantity)</code> を受け取ると， リソースの状態が <code>itemDB</code> から <code>insert(itemDB, itemId, {"count": quantity, "name": itemName})</code> に変わることを示しています．<br>
+	ここで，関数 <code>insert(x, y, z)</code> は，写像 <code>x</code> に対し，キー <code>y</code> と値 <code>z</code> の対応を追加した結果得られる写像を返す関数です．<br>
+	また <code>{"count": quantity, "name": itemName}</code> は，<code>"count"</code> と <code>"name"</code> をキーに持つ JSON オブジェクトを表しています．<br>
+</p>
+<p>
+	<code>ReceivingOrShipping(itemId:<c1>Str</c1>)</code> チャンネルでは <code>inventory.{itemId}.count</code> リソースがメッセージ <code>receiveOrShip(quantity)</code> を受け取ると，
+	遷移前の状態 <code>prev_quantity</code> が <code>prev_quantity + quantity</code> に変わることを示しています．<br>
+</p>
+
+<div style="padding: 10px; margin-bottom: 10px; border: 1px solid #333333; border-radius: 10px;">
+	<pre>
+<c1>channel</c1> ItemRegistration {
+	<c1>out</c1> inventory(itemDB:<c1>Map</c1>, registerItem(itemId:<c1>Str</c1>, itemName:<c1>Str</c1>, quantity:<c1>Int</c1>)) = insert(itemDB, itemId, {"count": quantity, "name": itemName})
+}
+
+<c1>channel</c1> ReceivingOrShipping(itemId:<c1>Str</c1>) {
+	<c1>out</c1> inventory.{itemId}.count(prev_quantity:<c1>Int</c1>, receiveOrShip(quantity:<c1>Int</c1>)) = prev_quantity + quantity
+}
+	</pre>
+</div>
+<hr/>
+
+<h2>モデルの可視化</h2>
+<p>
+	先ほどの InventoryManagement のモデルのリソースとチャンネルを，DTRAM のモデリングツールを使用して可視化したものを以下の図に示します．<br>
+</p>
+<div class="img-center">
+	<img src="../img/DTRAM/InventoryManagement/DTRAM Ver InventoryManagement architecture Visualize.png", class ="before-image-size"><br>
+</div>
+<p>
+	この図がモデルの実行に依らない，リソースとチャンネルの関係を表していることに注意して下さい．<br>
+	図の中央にある <code>inventory</code> リソースは <code>ItemRegistration</code> チャンネルから商品を登録するメッセージを受け取ります．<br>
+	<code>inventory</code> リソースの子リソースである，<code>inventory.{itemId}</code> リソースは商品を表しています．<br>
+	このリソース名に含まれる <code>itemId</code> は商品idを表すパスパラメータで，一意な商品の特定を可能にしています．<br>
+	<code>inventory.{itemId}</code> リソースの子リソースである <code>inventory.{itemId}.count</code> リソースは <code>inventory.{itemId}</code> の在庫数を表しており，
+	<code>ReceivingOrShipping</code> チャンネルから入荷もしくは出荷を行うメッセージを受け取ります．
+</p>
+<hr/>
+
+<h2>InventoryManagement モデルの仮想実行について</h2>
+<p>
+	ここでは，InventoryManagement モデルの仮想実行について説明します．この仮想実行で用いるテストケースは次の通りです．<br>
+<ol>
+	<li>inventory に新しく取り扱う商品(Asahi)を初期数量100で登録します．</li>
+	<li>登録した商品(Asahi)を50個出荷します．</li>
+</ol>
+</p>
+
+<h3>仮想実行の可視化:</h3>
+<p>
+	シミュレーションツールを使用すると与えられたモデルに対して，任意の仮想実行を行うことができます．<br>
+	ここでは上で示したテストケースに従って行った仮想実行を可視化したものを示していきます．まず，システムの初期状態を可視化したものが以下の図です．
+</p>
+
+<div class="img-center">
+	<img src="../img/DTRAM/InventoryManagement/DTRAM 1 Ver InventoryManagement.png", class ="before-image-size"><br>
+</div>
+<p>
+	初期状態では，<code>inventory</code> リソースには何の商品も登録されていない状態になっています．<code>nil</code> は空のマップやリストを表しています．<br>
+	次に，<code>inventory</code> に商品(Asahi)を登録するため，<code>inventory</code> リソースをダブルクリックします．
+</p>
+
+<div class="img-center">
+	<img src="../img/DTRAM/InventoryManagement/DTRAM 2 Ver InventoryManagement.png", class ="before-image-size"><br>
+</div>
+<p>
+	<strong><code>registerItem</code></strong> という商品を登録するためのメッセージを選択します．
+</p>
+
+<div class="img-center">
+	<img src="../img/DTRAM/InventoryManagement/DTRAM 3 Ver InventoryManagement.png", class ="before-image-size"><br>
+</div>
+<p>
+	<code>registerItem</code> メッセージのシグニチャが表示されます．<br>
+	<code>itemId</code> は商品id，<code>itemName</code> は商品名 ，<code>quantity</code> は初期数量を表します．
+</p>
+
+<div class="img-center">
+	<img src="../img/DTRAM/InventoryManagement/DTRAM 4 Ver Inventory Management.png", class ="before-image-size"><br>
+</div>
+<p>
+	ここでは，<code>registerItem("@123", "Asahi", 100)</code> を入力します．
+</p>
+
+<div class="img-center">
+	<img src="../img/DTRAM/InventoryManagement/DTRAM 5 Ver Inventory Management.png", class ="before-image-size"><br>
+</div>
+<p>
+	次の状態に遷移し，遷移後の状態が表示されます．@123というidを持つ商品 <code>inventory.@123</code> が <code>inventory</code> の子リソースとして生成されていることがわかります．<br>
+	<code>inventory.@123</code> の在庫数量 <code>inventory.@123.count</code> が100，商品名 <code>inventory.@123.name</code> がAsahiとなっていることを確認できます．<br>
+	次に，登録した商品 <code>inventory.@123</code> を50個出荷したいので，<code>inventory.@123.count</code> リソースをダブルクリックします．
+</p>
+
+<div class="img-center">
+	<img src="../img/DTRAM/InventoryManagement/DTRAM 6 Ver Inventory Management.png", class ="before-image-size"><br>
+</div>
+<p>
+	メッセージを選択する画面が同様に表示されますので，入荷か出荷を行う <strong><code>receiveOrShip</code></strong> というメッセージを選択します．
+</p>
+
+<div class="img-center">
+	<img src="../img/DTRAM/InventoryManagement/DTRAM 7 Ver Inventory Management.png", class ="before-image-size"><br>
+</div>
+<p>
+	入荷数量，または出荷数量の入力が可能な画面が表示されますので，ここでは <code>receiveOrShip(-50)</code> と入力して実行します．<br>
+	ここで quantity が正の値のときは入荷，負の値のときは出荷が行われます．
+</p>
+
+<div class="img-center">
+	<img src="../img/DTRAM/InventoryManagement/DTRAM 9 Ver Inventory Management.png", class ="before-image-size"><br>
+</div>
+<p>
+	次の状態に遷移したため，<code>inventory.@123.count</code> リソースの状態が50に遷移したことが確認できました．
+</p>
+<hr/>
+
+<h2>
+	課題概要
+</h2>
+<p>
+	ここからが課題です．<br>
+	本課題ではまず，上記にて説明を行った <code>InventoryManagement</code> の仕様に，ある機能を追加した仕様を考えます．<br>
+	その仕様のモデルを以下に示します．また，そのモデルの仮想実行を可視化したものをその下に示します．これらの図を見ていただいた上で，２つの設問にお答えいただきます．<br>
+	なお，以下のモデル中にある関数 <code>if(x, y, z)</code> は，<code>x</code> が <code>true</code> のときは <code>y</code> を返し，<code>false</code> のときは <code>z</code> を返します．
+	設問にお答えいただく際は，必ず設問１，設問２の順番でご解答下さい．以下の図と同じものが設問のページにも記載されているのでこのまま設問のページに飛んでいただいてもかまいません．
+</p>
+<div style="padding: 10px; margin-bottom: 10px; border: 1px solid #333333; border-radius: 10px;">
+<pre>
+<c1>channel</c1> ItemRegistration {
+	<c1>out</c1> inventory(itemDB:<c1>Map</c1>, registerItem(itemId:<c1>Str</c1>, itemName:<c1>Str</c1>, quantity:<c1>Int</c1>)) = insert(itemDB, itemId, {"count": quantity, "name": itemName})
+}
+
+<c1>channel</c1> ReceivingOrShipping(itemId:<c1>Str</c1>) {
+	<div style="background-color:#EDF7FF;">	<c1>out</c1> inventory.{itemId}.count(prev_quantity:<c1>Int</c1>, receiveOrShip(quantity:<c1>Int</c1>)) = if(prev_quantity + quantity >= 0, prev_quantity + quantity, prev_quantity)</div>
+}
+</pre>
+</div>
+
+<h3>1:</h3>
+<div class="img-center">
+	<img src="../img/DTRAM/InventoryManagement/DTRAM 1 Ver InventoryManagement.png", class ="before-image-size"><br>
+</div>
+<h3>2:</h3>
+<div class="img-center">
+	<img src="../img/DTRAM/InventoryManagement/DTRAM 4 Ver Inventory Management.png" , class ="before-image-size"><br>
+</div>
+<h3>3:</h3>
+<div class="img-center">
+	<img src="../img/DTRAM/InventoryManagement/DTRAM 5 Ver Inventory Management.png", class ="before-image-size"><br>
+</div>
+<h3>4:</h3>
+<div class="img-center">
+	<img src="../img/DTRAM/InventoryManagement/CheckMinus/DTRAM_kadai4_Ver_InventoryManagement.png" , class ="before-image-size"><br>
+</div>
+<h3>5:</h3>
+<div class="img-center">
+	<img src="../img/DTRAM/InventoryManagement/DTRAM 9 Ver Inventory Management.png", class ="before-image-size"><br>
+</div>
+<h3>6:</h3>
+<div class="img-center">
+	<img src="../img/DTRAM/InventoryManagement/CheckMinus/DTRAM_kadai6_Ver_InventoryManagement.png" , class ="before-image-size"><br>
+</div>
+<h3>7:</h3>
+<div class="img-center">
+	<img src="../img/DTRAM/InventoryManagement/DTRAM 9 Ver Inventory Management.png", class ="before-image-size"><br>
+</div>
+
+<p>
+	<strong>
+		<a href="https://docs.google.com/forms/d/e/1FAIpQLScOaQl6oVFSc6Ygxa89YCtzgL5Bv5XJyGkJLp3gq24seZ91YA/viewform" target="_blank" rel="noopener noreferrer">
+			設問１ (別タブが開きます)
+		</a>
+	</strong>
+	<br>
+	<strong>
+		<a href="https://docs.google.com/forms/d/e/1FAIpQLSfgK_6VWFym_qBugyf5Rr1VsPwTR6BTVecxg9BhFxliRyCnlw/viewform" target="_blank" rel="noopener noreferrer">
+			設問２ (別タブが開きます)
+		</a>
+	</strong>
+	<br>
+	<strong>
+		<a href="https://docs.google.com/forms/d/e/1FAIpQLScjxIDaCeqBxYq3-YduI1PXxH58MqFYeek8nxXftcz-UAeNfA/viewform" target="_blank" rel="noopener noreferrer">
+			課題評価アンケート (別タブが開きます)
+		</a>
+	</strong>
+	<br>
+	<strong>
+		<a href="https://docs.google.com/forms/d/e/1FAIpQLSfNR3_TAvFTkRyzPw4Yg09mg0nBlNg5j_KbTNfZpKiVmRzVuQ/viewform" target="_blank" rel="noopener noreferrer">
+			InventoryManagement についてのアンケート (別タブが開きます)
+		</a>
+	</strong>
+</p>
+
+<hr>
+<br>
+<a href="./../Closing.html">【実験終了説明】へ</a>
+</body>
+
+<style>
+	.title{
+		text-align: center;
+	}
+	.links-manual-A{
+		display: flex;
+		flex-direction: column;
+	}
+	.img-center{
+		display: flex;
+		justify-content: center;
+		align-items: center;
+	}
+	.before-image-size{
+		max-width: 100%;
+		height: auto;
+	}
+	.after-image-size{
+		max-width: 100%;
+		height: auto;
+	}
+</style>
+
+</html>

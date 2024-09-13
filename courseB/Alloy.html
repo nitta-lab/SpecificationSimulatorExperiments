@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="ja" xmlns="http://www.w3.org/1999/html" xmlns="http://www.w3.org/1999/html">
+<head>
+    <meta charset="UTF-8">
+    <style>
+        c1{
+            color: blue;
+        }
+        c2{
+            color: red;
+        }
+    </style>
+    <title>【Alloyの説明】</title>
+</head>
+<body>
+<h1>【Alloy の概要説明】</h1>
+<p>
+    本実験で用いる Alloy の概要について説明します．<br>
+    現時点では本ページの内容を完全に理解する必要はありません．課題に取り組む際に必要に応じて本ページを参照しながら進めるようにください．<br>
+</p>
+<hr/>
+<h2>形式的仕様記述言語とは？</h2>
+<p>
+    Alloy は代表的な<strong>形式的仕様記述言語</strong>の一つです．<br>
+    形式的仕様記述言語とは，仕様を自然言語ではなく，論理式や等式のような数学的に厳密に意味が定義された形式で記述する方法で，<br>
+    <ul>
+    <li>仕様を曖昧性なく厳密に記述することができる，</li>
+    <li>プログラミング言語よりも高い抽象度でシステムの振る舞いを記述することができる，</li>
+    <li>記述した仕様を仮想的に実行したり，コンピュータを用いて解析を行うことができる</li>
+    </ul>
+    といった特長を持っています．<br>
+    コンピュータによる仕様の解析としては，仕様レベルで不具合が存在しないか（機能的要件が満たされているか）を網羅的に調べたり，セキュリティホールが存在しないことを確認することなどが挙げられます．<br>
+    形式的仕様記述言語による記述は，通常のプログラミング言語におけるソースコードの記述とはかなり異なっております．そのため，最初に形式的な仕様記述を見ると少々戸惑うかもしれません．<br>
+    一般的に形式的仕様記述言語の表現能力はプログラミング言語よりも低く，表現能力が低くなればなるほど複雑な振る舞いが記述できなくなる一方で，強力な解析ができるといった関係が成り立っています．<br>
+</p>
+<hr/>
+<h2>Alloy とは？</h2>
+<p>
+    Alloy は形式的仕様記述言語としては比較的表現能力が高いため，完全に網羅的な解析はできませんが，実用性を大きく損なわない範囲で網羅性を制限した解析を行うことができるといった特長があります．<br>
+    本実験では，Alloy による仕様記述と仕様の仮想実行に着目していきます．そのため，Alloy による仕様の解析は行いません．また，Alloy のツールをPCにダウンロードして操作していただく必要もありません．<br>
+</p>
+<h3>Alloyによる仕様記述:</h3>
+<p>
+    Alloy では，<strong>集合</strong>と<strong>関係</strong>を使って仕様を記述していきます．また，その記述は<strong>宣言的</strong>な形式で行われます．<br>
+    宣言的記述の対義語は手続き的記述です．我々が通常用いるプログラミング言語では手続き的な記述が用いられています．手続き的な記述ではプログラムは基本的に一番上の行から順番に一行ずつ,
+    記述された順に実行されていきます．<br>
+    一方宣言的な記述では，記述の順序は関係ありません．すべての行が同時に成り立っていると考えます．連立方程式を考えてみると解りやすいと思います．
+    連立方程式では，すべての式が同時に成り立っているため，式の記述順に関係なく同じ解が得られます．そのため，宣言的記述には基本的に時間の経過が存在しません．実行の初期状態から最終状態までのすべての状態が同時に存在していることになります．<br>
+    Alloy の概念的な説明はこれくらいにして，具体的に Alloy の記述を見ていきましょう．
+</p>
+<hr/>
+<h2>Alloy による仕様記述の例</h2>
+<h3>例題仕様:</h3>
+<p>
+    簡単なアドレス帳の仕様を Alloy で記述することを考えます．
+    アドレス帳の仕様は次の通りです．
+    <ul>
+    <li>システムはアドレス帳を1つ持つ．</li>
+    <li>アドレス帳には所有者の名前が記載されている．</li>
+    <li>アドレス帳には連絡先の名前とアドレスの対応を任意個登録することができる．</li>
+    <li>アドレス帳において連絡先の名前が重複してはならない．</li>
+    <li>アドレス帳は連絡先の名前とアドレスの対応が1つも登録されていない状態を初期状態とする．</li>
+    <li>add 操作によって，指定した名前と指定したアドレスの対応をアドレス帳に登録することができる．</li>
+    <li>del 操作によって，指定した名前と対応するアドレスをアドレス帳から削除することができる．</li>
+    </ul>
+</p>
+<h3>Alloy による記述例:</h3>
+<p>
+    以下の仕様記述では名前の集合を <code>Name</code>，アドレスの集合を <code>Addr</code>，アドレス帳の集合を <code>Book</code> で表します．<br>
+    <c1>sig</c1> でこれらの<strong>集合</strong>を宣言しています．ここで集合はクラス，集合に属している各要素はインスタンスに相当すると考えてください．ただし，Alloy は宣言型の言語なので，インスタンスの状態を変えることができません．状態の変更前と変更後でインスタンスが別々になると考えてください．<br>
+    <code>Book</code> は，2つのフィールド <code>owner</code> と <code>addr</code> を持っています．Alloy におけるフィールドは，インスタンスの内部構造を表すものではなく，基本的に2つの集合の要素間の関係を表しています．たとえば <code>Book</code> の <code>owner</code> フィールドは，<code>Book</code> の各要素に <code>Name</code> の要素を対応づける関係を表しています．フィールドの詳細な意味については後ほど説明します．<br>
+</p>
+<p>
+    Alloy では，操作も関係で表されます．たとえば add 操作は，連絡先を登録する前の <code>Book</code> の状態と，登録した後の <code>Book</code> の状態の間の関係を表していると考えます．<br>
+    より具体的には <c1>pred</c1> を用いて，登録前の <code>Book</code> の状態 <code>b</code>，登録後の <code>Book</code> の状態 <code>b'</code>，登録する連絡先の名前 <code>n</code>，登録するアドレス <code>a</code> の間に成り立つ<strong>述語</strong>として定義されています．<br>
+    述語の本体は 1つ以上の式によって構成されます．これらの式は変数間に成り立つ制約関係を表しているため記述順は関係ありません．<br>
+    たとえば，<code>b'.owner = b.owner</code> は，add 操作前の <code>Book</code> の <code>owner</code>（<code>b.owner</code>）と，add 操作後の <code>Book</code> の <code>owner</code>（<code>b'.owner</code>）が同じであることを示しています．<br>
+    <code>b'.addr = b.addr + n -> a</code> は，add 操作前の <code>Book</code> の <code>addr</code> （<code>Book</code> の各インスタンスが持つ，名前とアドレスの対応表）に対して，名前 <code>n</code> とアドレス <code>a</code> の対応を付け足したものが，add 操作後の <code>Book</code> の <code>addr</code> になることを示しています．
+    これらの式は順番を入れ替えても意味は変わりません．（なお <code>x + y -> z</code> は，関係 <code>x</code> に <code>y</code> と <code>z</code> の対応を追加した関係を表しています．）
+</p>
+<p>
+    実行は，<c1>run</c1> で指定された述語を呼び出すことによってなされます．ここでは，<code>execute</code> という引数を持たない述語が呼び出されます．<br>
+    <code>execute</code> の本体については，いくつか説明が必要です．<br>
+    まず，この <code>execute</code> 本体は，1つの論理式で構成されています．一見，4つの論理式が列挙されているように思いますが，全体として論立式は1つです．<br>
+    ポイントは存在限量子 <c1>some</c1> です．<c1>some</c1> は，後ろに並んだ変数の値のある組み合わせにおいて，<code>|</code> の後ろに記載された論理式が成り立つということを示しています．似たようなものに <c1>all</c1> と <c1>no</c1> があります．
+    <c1>all</c1> は，後ろに並んだ変数の値の任意の組み合わせにおいて，<code>|</code> の後ろの論理式が成り立つということを，<c1>no</c1> は，後ろに並んだ変数の値のどんな組み合わせにおいても，<code>|</code> の後ろの論理式が成り立たないことを示します．<br>
+    ここでは，<code>b0, b1, b2, b3</code> という <code>Book</code> のインスタンスのある組み合わせにおいて（<c1>disj</c1> がついているのでこれら4つのインスタンスは互いに異なります），また，<code>n0, n1, n2</code> という <code>Name</code> の互いに異なる3つのインスタンスのある組み合わせについて，
+    さらに，<code>a0, a1</code> という <code>Addr</code> の互いに異ならなくてもよいインスタンスのある組み合わせについて，<code>|</code> 以下の論理式が成り立っていることを示しています．<code>|</code> 以下の論理式は <code>{</code> と <code>}</code> で囲まれている4つの論理式をまとめたもの，すなわち4つの論理式が同時に成り立っていることを示す1つの論理式になります．<br>
+    この4つの論理式も同時に成り立っているので，記述の順序を変えても意味は変わらないのですが，しかし，実行において最初に init 操作が呼ばれて，次に add 操作が2回呼ばれ，最後に del 操作が呼ばれることを表しています．
+    詳細は後ほど説明しますが，これには，<code>Book</code> の4つのインスタンス（<code>b0, b1, b2, b3</code>）が関係しています．まず初期化の操作 init に関わるのは <code>b0</code> です．次に，最初の add 操作は，<code>b0</code> を <code>b1</code> に変更します．
+    さらに，次の add 操作は，<code>b1</code> を <code>b2</code> に，最後の del 操作は <code>b2</code> を <code>b3</code> に変更します．このようにインスタンス（の状態）を受け渡すことによって，実行が進んでいくことを表すことができます．
+</p>
+<div style="padding: 10px; margin-bottom: 10px; border: 1px solid #333333; border-radius: 10px;">
+	<pre>
+<c1>sig</c1> Name, Addr {}
+<c1>sig</c1> Book {
+	owner: Name,
+	addr: Name -> <c1>lone</c1> Addr
+}
+
+<c1>pred</c1> init[b: Book, n: Name] {
+	b.owner = n
+	<c1>no</c1> b.addr
+}
+
+<c1>pred</c1> add[b, b': Book, n: Name, a: Addr] {
+	b'.owner = b.owner
+	b'.addr = b.addr + n -> a
+}
+
+<c1>pred</c1> del[b, b': Book, n: Name] {
+	b'.owner = b.owner
+	b'.addr = b.addr - n -> b.addr[n]
+}
+
+<c1>pred</c1> execute[] {
+	<c1>some</c1> <c1>disj</c1> b0, b1, b2, b3: Book, <c1>disj</c1> n0, n1, n2: Name, a0, a1: Addr | {
+		init[b0, n0]
+		add[b0, b1, n1, a0]
+		add[b1, b2, n2, a1]
+		del[b2, b3, n1]
+	}
+}
+
+<c1>run</c1> execute <c1>for</c1> <c2>2</c2> <c1>but</c1> <c2>4</c2> Book, <c2>3</c2> Name
+	</pre>
+</div>
+<h3>実行の可視化:</h3>
+<p>
+    Alloy では実行を可視化することができます．上の仕様記述内の <c1>run</c1> による実行を可視化したものが以下の図です．
+</p>
+<div class="img-center">
+    <img src="../img/Alloy/AlloySimpleAddressBook.png" class ="before-image-size"><br>
+</div>
+<p>
+    可視化では実行時に生成される1つのインスタンスが，1つの矩形で表されます．たとえば，図の上部に並んでいる4つの矩形は，<code>execute</code> 述語内で宣言されている4つの変数，<code>b0, b1, b2, b3</code>が参照する <code>Book</code> の4つのインスタンスに対応しています．
+    矩形内部には，そのインスタンスが所属しているクラス名とインスタンスのIDが記されています．また，括弧の中にはそのインスタンスを参照している変数名が記されています．<br>
+    <code>Book</code> のインスタンスは4つありますが，これは手続き型プログラムで考えると <code>Book</code> の1つのインスタンスの状態が3回変わったことに相当しています．
+    <code>Book</code> の初期化後の状態が <code>Book3</code>，最初の add 操作後の状態が <code>Book2</code>，次の add 操作後の状態が <code>Book1</code>，最後の del 操作後の状態が <code>Book0</code> に当たります．
+    Alloy は宣言型言語なので，これらは順番に生成されるというわけではなく，最初から同時に存在しています．<br>
+</p>
+<p>
+    <code>Book</code> の <code>owner</code> フィールドは，<code>Book</code> の要素と，<code>Name</code> の要素の間の関係として定義されます．
+    <code>Book</code> のインスタンスを1つ指定すれば，<code>owner</code>フィールドを使って <code>b.owner</code> のように <code>Name</code> のインスタンスを1つ取ってくることができるためです．
+    この図では，<code>Book</code> のどのインスタンスも同じ <code>Name</code> のインスタンスを参照しています．これは，この実行における <code>Book</code> の状態の変化では，<code>owner</code> が変わらないためです．<br>
+</p>
+<p>
+    <code>addr</code> フィールドは少し複雑です．この仕様では <code>addr</code> フィールドは，<code>addr: Name -> <c1>lone</c1> Addr</code> のように定義されています．
+    これは，<code>addr</code> フィールドが <code>Name</code> から <code>Addr</code> への対応関係を参照していることを表しています．
+    ここで，<c1>lone</c1> の記述は <code>Name</code> の各要素に対して，対応する <code>Addr</code> の要素がたかだか1つ（0個か1個）であることを示しています．<br>
+    たとえば，<code>Book2</code> を見ると，<code>addr</code> は <code>Name1</code> に <code>Addr1</code> を対応させていることがわかります．
+    一方，<code>Name0</code> に対応する <code>Addr</code> の要素は存在していません．<code>Book1</code> では add 操作によって，新たに <code>Name0</code> から <code>Addr0</code> への対応が追加されています．
+    さらに <code>Book0</code> ではadd 操作によって，<code>Name1</code> から <code>Addr1</code> への対応が削除されています．<br>
+</p>
+<p>
+    Alloy ではこのようにして実行が可視化されます．
+</p>
+<hr/>
+<br>
+<a href="SimpleTwitter.html">【ツイートシステム(SimpleTwitter) の仕様説明】へ</a>
+
+</body>
+</html>
